@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = 3000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
@@ -27,31 +27,39 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
-      );
-      
-
+    );
 
     const news = client.db("newsDB").collection("news");
-      const comment = client.db("newsDB").collection("comment");
+    const comment = client.db("newsDB").collection("comment");
 
-      app.post('/add-blog', async (req, res) => {
-          const blog = req.body
-          const query = {
-              title: blog.title,
-              image: blog.image,
-              category: blog.category,
-              content: blog.content,
-              authorName: blog.name,
-              authorEmail: blog.email,
-              authorPhoto: blog?.photo,
-              creationDate: blog.today
-          }
+    app.get("/blogs", async (req, res) => {
+      const result = await news.find().toArray();
+      res.send(result);
+    });
 
-          const result = await news.insertOne(query)
-          res.send(result)
-      })
-      
+    app.get("/blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await news.findOne(query);
+      res.send(result);
+    });
 
+    app.post("/add-blog", async (req, res) => {
+      const blog = req.body;
+      const query = {
+        title: blog.title,
+        image: blog.image,
+        category: blog.category,
+        content: blog.content,
+        authorName: blog.name,
+        authorEmail: blog.email,
+        //authorPhoto: blog?.photo,
+        creationDate: blog.today,
+      };
+
+      const result = await news.insertOne(query);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
