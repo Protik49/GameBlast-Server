@@ -37,6 +37,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/comments', async (req, res) => {
+      const result = await comment.find({ tite: req.body.blogTitle }).toArray()
+      res.send(result)
+    })
+
     app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -60,6 +65,21 @@ async function run() {
       const result = await news.insertOne(query);
       res.send(result);
     });
+
+    app.post("/addcomment", async (req, res) => {
+
+      const query = {
+        name: req.body.name,
+        comment: req.body.comment,
+        title: req.body.blogTitle,
+      };
+
+      const result = await comment.insertOne(query)
+      res.send(result)
+
+    });
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
