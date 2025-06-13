@@ -65,6 +65,19 @@ async function run() {
       res.send(topTen);
     });
 
+    app.get(`/wishlist/:email`, async (req, res) => {
+      const email = req.params.email;
+
+      const wishlistItems = await wishlist.find({ userEmail: email }).toArray();
+
+      const newsIDs = wishlistItems.map((item) => new ObjectId(item.newsID));
+
+      const blogData = await news.find({ _id: { $in: newsIDs } }).toArray();
+
+      res.send(blogData);
+    });
+    
+
     app.post("/add-blog", async (req, res) => {
       const blog = req.body;
       const query = {
@@ -95,11 +108,16 @@ async function run() {
     });
 
     app.post("/wishlist", async (req, res) => {
-      const query = {
-        newsID: req.body.newsID,
-        userEmail: req.body.userEmail,
-      };
-      const result = await wishlist.insertOne(query);
+      const { newsID, userEmail } = req.body;
+
+      // Check if already exists
+      const existing = await wishlist.findOne({ newsID, userEmail });
+
+      if (existing) {
+        return res.status(409).send({ message: "Already in wishlist" });
+      }
+
+      const result = await wishlist.insertOne({ newsID, userEmail });
       res.send(result);
     });
   } finally {
