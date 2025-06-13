@@ -31,22 +31,38 @@ async function run() {
 
     const news = client.db("newsDB").collection("news");
     const comment = client.db("newsDB").collection("comment");
+    const wishlist = client.db("newsDB").collection("wishlist");
 
     app.get("/blogs", async (req, res) => {
       const result = await news.find().toArray();
       res.send(result);
     });
 
-    app.get('/comments', async (req, res) => {
-      const result = await comment.find({ tite: req.body.blogTitle }).toArray()
-      res.send(result)
-    })
+    app.get("/comments/:id", async (req, res) => {
+      const result = await comment.find({ blogId: req.params.id }).toArray();
+      res.send(result);
+    });
 
     app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await news.findOne(query);
       res.send(result);
+    });
+
+    app.get("/featured-blogs", async (req, res) => {
+      const blogs = await news.find().toArray();
+
+      const withWordCount = blogs.map((blog) => ({
+        ...blog,
+        wordCount: blog.content?.split(/\s+/).filter(Boolean).length || 0,
+      }));
+
+      const topTen = withWordCount
+        .sort((a, b) => b.wordCount - a.wordCount)
+        .slice(0, 10);
+
+      res.send(topTen);
     });
 
     app.post("/add-blog", async (req, res) => {
@@ -58,7 +74,7 @@ async function run() {
         content: blog.content,
         authorName: blog.name,
         authorEmail: blog.email,
-        //authorPhoto: blog?.photo,
+        authorPhoto: blog?.photo,
         creationDate: blog.today,
       };
 
@@ -67,19 +83,25 @@ async function run() {
     });
 
     app.post("/addcomment", async (req, res) => {
-
       const query = {
         name: req.body.name,
         comment: req.body.comment,
-        title: req.body.blogTitle,
+
+        blogId: req.body.blogId,
       };
 
-      const result = await comment.insertOne(query)
-      res.send(result)
-
+      const result = await comment.insertOne(query);
+      res.send(result);
     });
 
-
+    app.post("/wishlist", async (req, res) => {
+      const query = {
+        newsID: req.body.newsID,
+        userEmail: req.body.userEmail,
+      };
+      const result = await wishlist.insertOne(query);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
