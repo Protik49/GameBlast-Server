@@ -120,6 +120,46 @@ async function run() {
       const result = await wishlist.insertOne({ newsID, userEmail });
       res.send(result);
     });
+
+
+
+
+    app.patch("/blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+
+      try {
+        const result = await news.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        res.send(result);
+      } catch (err) {
+        console.error("Update error:", err);
+        res.status(500).send({ message: "Error updating blog" });
+      }
+    });
+
+
+    app.put("/blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const { title, content, image, category } = req.body;
+
+      const result = await news.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            title,
+            content,
+            image,
+            category,
+          },
+        }
+      );
+
+      res.send(result);
+    });
+    
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
