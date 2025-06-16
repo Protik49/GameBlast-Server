@@ -5,7 +5,11 @@ const cors = require("cors");
 const port = 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", 
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASSWORD}@cluster0.fhaekj1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -76,7 +80,6 @@ async function run() {
 
       res.send(blogData);
     });
-    
 
     app.post("/add-blog", async (req, res) => {
       const blog = req.body;
@@ -121,9 +124,6 @@ async function run() {
       res.send(result);
     });
 
-
-
-
     app.patch("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
@@ -139,7 +139,6 @@ async function run() {
         res.status(500).send({ message: "Error updating blog" });
       }
     });
-
 
     app.put("/blog/:id", async (req, res) => {
       const id = req.params.id;
@@ -159,7 +158,6 @@ async function run() {
 
       res.send(result);
     });
-    
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
