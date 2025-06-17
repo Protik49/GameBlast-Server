@@ -152,6 +152,16 @@ async function run() {
 
       res.send(result);
     });
+    
+
+    app.delete("/wishlist", async (req, res) => {
+      const { newsID, userEmail } = req.body;
+      const result = await wishlist.deleteOne({ newsID, userEmail });
+      res.send(result);
+    });
+
+    
+
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
